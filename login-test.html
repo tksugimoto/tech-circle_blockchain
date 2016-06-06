@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta charset="utf-8">
+	<title>ログインテスト</title>
+	<style>
+		body {
+			padding-top: 40px;
+			width: 800px;
+			margin: 0 auto;
+		}
+		input {
+			width: 100%;
+			height: 2em;
+		}
+		#output {
+			background: #e7e7e7;
+		}
+	</style>
+</head>
+<body>
+	<p>
+		※ 対象ブラウザ： Chrome, Firefox, Opera <br>
+		<a href="http://caniuse.com/#feat=fetch">http://caniuse.com/#feat=fetch</a>
+	</p>
+	<p>
+		各種情報の掲載場所
+		<a href="https://obc-service-broker-prod.mybluemix.net/v2/swagger">IBM Blockchain</a>
+	</p>
+	<p>
+		API URL: 
+		<input id="endpoint" placeholder="https://**********-api.blockchain.ibm.com:443">
+	</p>
+	<p>
+		ID: 
+		<input id="enrollId" placeholder="dashboarduser_type0_****">
+	</p>
+	<p>
+		Secret: 
+		<input id="enrollSecret" placeholder="******">
+	</p>
+	<p>
+		<input type="button" id="login" value="Login" disabled>
+	</p>
+	<pre id="output"></pre>
+	<script>
+		var loginButton = document.getElementById("login");
+		(function (keys) {
+			keys.forEach(key => {
+				var elem = document.getElementById(key);
+				elem.value = localStorage[key] || "";
+				elem.addEventListener("blur", () => {
+					localStorage[key] = elem.value;
+					loginButton.disabled = !keys.every(key => localStorage[key]);
+				});
+			});
+			loginButton.disabled = !keys.every(key => localStorage[key]);
+		})([
+			"endpoint",
+			"enrollId",
+			"enrollSecret"
+		]);
+		loginButton.addEventListener("click", () => {
+			var endpoint = localStorage.endpoint;
+			var enrollId = localStorage.enrollId;
+			var enrollSecret = localStorage.enrollSecret;
+			if (endpoint && enrollId && enrollSecret) {
+				var postJson = {
+					enrollId: enrollId,
+					enrollSecret: enrollSecret
+				};
+				fetch(`${endpoint.replace(/[/]$/, "")}/registrar`, {
+					method: "POST",
+					body: JSON.stringify(postJson)
+				}).then(response => {
+					return response.json();
+				}).then(json => {
+					console.log(json);
+					document.getElementById("output").innerText = JSON.stringify(json, "", "\t");
+				});
+			}
+		});
+	</script>
+</body>
+</html>
